@@ -1,0 +1,21 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t danielweigel/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run danielweigel/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t danielweigel/multi-client ./client
+  - docker build -t danielweigel/multi-nginx ./nginx
+  - docker build -t danielweigel/multi-server ./server
+  - docker build -t danielweigel/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push danielweigel/multi-client
+  - docker push danielweigel/multi-nginx
+  - docker push danielweigel/multi-server
+  - docker push danielweigel/multi-worker
